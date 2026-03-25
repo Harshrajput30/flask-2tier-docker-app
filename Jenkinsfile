@@ -1,22 +1,33 @@
 pipeline{
-    agent any
+    agent any;
     stages{
-        stage('Clone repo'){
+        stage("Code"){
             steps{
-                git branch: 'main', url: 'https://github.com/prashantgohel321/DevOps-Project-Two-Tier-Flask-App.git'
+                git url: "https://github.com/Harshrajput30/flask-2tier-docker-app" , branch : "main"
             }
         }
-        stage('Build image'){
+        stage("build"){
             steps{
-                sh 'docker build -t flask-app .'
+                sh 'docker build -t two-tier-flask-app .'
             }
         }
-        stage('Deploy with docker compose'){
+        stage("docker login"){
             steps{
-                // existing container if they are running
-                sh 'docker compose down || true'
-                // start app, rebuilding flask image
-                sh 'docker compose up -d --build'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]){
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }
+            }
+        }
+        stage("push to dockerhub"){
+            steps{
+                sh 'docker tag two-tier-flask-app harshrajputt/two-tier-flask-app:latest'
+                sh 'docker push harshrajputt/two-tier-flask-app:latest '
+            }
+        }
+       stage("Deployment"){
+            steps{
+                sh 'docker rm -f flask-container || true'
+                sh 'docker run -d -p 80:80 --name flask-container harshrajputt/two-tier-flask-app:latest'
             }
         }
     }
