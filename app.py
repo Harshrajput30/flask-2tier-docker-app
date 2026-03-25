@@ -15,7 +15,7 @@ mysql = MySQL(app)
 import time
 
 def init_db():
-    retries = 5
+    retries = 15
     while retries > 0:
         try:
             cur = mysql.connection.cursor()
